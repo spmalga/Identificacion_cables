@@ -185,71 +185,51 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        const formValues = {
-            workReference: document.getElementById('workReference').value,
-            cableDescription: document.getElementById('cableDescription').value,
-            chainDescription: document.getElementById('chainDescription').value,
-            markedDescription: document.getElementById('markedDescription').value,
-            fullName: document.getElementById('fullName').value,
-            company: document.getElementById('company').value,
-            equipment: document.getElementById('equipment').value, // <-- Nuevo campo
-            email: document.getElementById('email').value, // <-- Nuevo campo
-            date: document.getElementById('date').value
-        };
-        
         const submitButton = document.getElementById('submitButton');
-        submitButton.textContent = 'Generando PDF...';
+        submitButton.textContent = 'Enviando...';
         submitButton.disabled = true;
 
-        const { jsPDF } = window.jspdf;
-        const formElement = document.getElementById('dataForm');
-
         try {
-            const canvas = await html2canvas(formElement, {
-                scale: 1,
-                logging: true,
-                useCORS: true,
-                allowTaint: true
-            });
+            const formValues = {
+                workReference: document.getElementById('workReference').value,
+                cableDescription: document.getElementById('cableDescription').value,
+                chainDescription: document.getElementById('chainDescription').value,
+                markedDescription: document.getElementById('markedDescription').value,
+                fullName: document.getElementById('fullName').value,
+                company: document.getElementById('company').value,
+                equipment: document.getElementById('equipment').value,
+                email: document.getElementById('email').value,
+                date: document.getElementById('date').value
+            };
             
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            
-            const pdfBlob = pdf.output('blob');
+            // Prepara los parámetros para EmailJS. 
+            // Las fotos se convierten en imágenes HTML para que se vean en el cuerpo del correo.
+            const templateParams = {
+                to_email: formValues.email, // Necesitas un campo en tu plantilla para esto
+                workReference: formValues.workReference,
+                cableDescription: formValues.cableDescription,
+                chainDescription: formValues.chainDescription,
+                markedDescription: formValues.markedDescription,
+                fullName: formValues.fullName,
+                company: formValues.company,
+                equipment: formValues.equipment,
+                date: formValues.date,
+                location: `Latitud: ${userLocation.latitude}, Longitud: ${userLocation.longitude}`,
+                address: userAddress,
+                signature_image: signatureDataUrl, // La firma en formato de imagen
+                captured_photos: capturedPhotos.map(photo => `<img src="${photo}" style="max-width:100%; height:auto; margin:5px;">`).join('')
+            };
 
-            const formData = new FormData();
-            for (const key in formValues) {
-                formData.append(key, formValues[key]);
-            }
-            formData.append('photos', JSON.stringify(capturedPhotos));
-            formData.append('location', JSON.stringify(userLocation));
-            formData.append('address', userAddress);
-            formData.append('signature', signatureDataUrl);
-            formData.append('pdfFile', pdfBlob, 'reporte.pdf');
+            // Envía los datos con EmailJS. 
+            // Reemplaza 'TU_SERVICE_ID' y 'TU_TEMPLATE_ID' con los tuyos.
+            await emailjs.send('TU_SERVICE_ID', 'TU_TEMPLATE_ID', templateParams);
 
-            console.log("Datos y PDF listos para enviar al servidor.");
-            
-            await fetch('http://localhost:3000/api/send-email', {
-                method: 'POST',
-                body: formData
-            }).then(response => {
-                if (response.ok) {
-                    alert("¡El correo con el PDF ha sido enviado con éxito!");
-                } else {
-                    alert("Hubo un error al enviar el correo. Por favor, inténtalo de nuevo.");
-                }
-            }).catch(error => {
-                console.error('Error en la conexión con el servidor:', error);
-                alert("Ocurrió un error en la conexión. Asegúrate de que el servidor esté encendido.");
-            });
-
+            alert("¡El correo con el informe ha sido enviado con éxito!");
+            console.log("Correo enviado. Datos:", templateParams);
+        
         } catch (error) {
-            console.error('Error al generar el PDF:', error);
-            alert("No se pudo generar el PDF. Revisa la consola para más detalles.");
+            console.error('Error al enviar el correo:', error);
+            alert("Hubo un error al enviar el correo. Por favor, revisa la consola.");
         } finally {
             submitButton.textContent = 'Enviar Datos';
             submitButton.disabled = false;
