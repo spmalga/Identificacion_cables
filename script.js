@@ -68,8 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
             stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             video.srcObject = stream;
         } catch (err) {
-            console.error("Error al acceder a la cámara:", err);
-            alert("No se pudo acceder a la cámara. Asegúrate de dar los permisos.");
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (fallbackError) {
+                console.error("Error al acceder a la cámara:", fallbackError);
+                alert("No se pudo acceder a la cámara. Asegúrate de que el dispositivo tenga una y de que los permisos estén concedidos.");
+            }
         }
     }
 
@@ -187,6 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
             markedDescription: document.getElementById('markedDescription').value,
             fullName: document.getElementById('fullName').value,
             company: document.getElementById('company').value,
+            equipment: document.getElementById('equipment').value, // <-- Nuevo campo
+            email: document.getElementById('email').value, // <-- Nuevo campo
             date: document.getElementById('date').value
         };
         
@@ -226,8 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log("Datos y PDF listos para enviar al servidor.");
             
-            // Aquí se realiza la llamada al servidor.
-            // Asegúrate de que el servidor esté escuchando en esta dirección
             await fetch('http://localhost:3000/api/send-email', {
                 method: 'POST',
                 body: formData
