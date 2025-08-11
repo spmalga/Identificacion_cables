@@ -202,10 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 date: document.getElementById('date').value
             };
             
-            // Prepara los parámetros para EmailJS. 
-            // Las fotos se convierten en imágenes HTML para que se vean en el cuerpo del correo.
             const templateParams = {
-                to_email: formValues.email, // Necesitas un campo en tu plantilla para esto
+                to_email: formValues.email,
                 workReference: formValues.workReference,
                 cableDescription: formValues.cableDescription,
                 chainDescription: formValues.chainDescription,
@@ -216,13 +214,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 date: formValues.date,
                 location: `Latitud: ${userLocation.latitude}, Longitud: ${userLocation.longitude}`,
                 address: userAddress,
-                signature_image: signatureDataUrl, // La firma en formato de imagen
+                signature_image: signatureDataUrl,
                 captured_photos: capturedPhotos.map(photo => `<img src="${photo}" style="max-width:100%; height:auto; margin:5px;">`).join('')
             };
 
             // Envía los datos con EmailJS. 
-            // Reemplaza 'TU_SERVICE_ID' y 'TU_TEMPLATE_ID' con los tuyos.
-            await emailjs.send('TU_SERVICE_ID', 'TU_TEMPLATE_ID', templateParams);
+            // Reemplaza 'TU_TEMPLATE_ID' con tu ID de plantilla.
+            await emailjs.send('service_z6hjbxo', 'template_5xca81q', templateParams);
 
             alert("¡El correo con el informe ha sido enviado con éxito!");
             console.log("Correo enviado. Datos:", templateParams);
