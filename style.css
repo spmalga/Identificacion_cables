@@ -125,7 +125,6 @@ input[type="text"]:focus, input[type="date"]:focus {
     margin-top: 20px;
 }
 
-/* Estilos para el contenedor de cada miniatura con botón de borrar */
 .photo-thumbnail-container {
     position: relative;
     width: 80px;
@@ -192,7 +191,6 @@ button:hover {
     transform: translateY(-2px);
 }
 
-/* Media query para pantallas extra pequeñas (ancho < 480px) */
 @media (max-width: 480px) {
     h1 {
         font-size: 20px;
@@ -202,7 +200,6 @@ button:hover {
     }
 }
 
-/* Media query para tabletas y dispositivos más grandes (ancho > 768px) */
 @media (min-width: 768px) {
     body {
         padding: 20px;

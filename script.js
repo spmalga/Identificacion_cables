@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function startCamera() {
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             video.srcObject = stream;
         } catch (err) {
             console.error("Error al acceder a la cámara:", err);
@@ -88,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         capturedPhotos.push(newPhotoDataUrl);
         
-        // Crear el contenedor para la miniatura y el botón
         const thumbnailContainer = document.createElement('div');
         thumbnailContainer.className = 'photo-thumbnail-container';
 
@@ -162,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    dataForm.addEventListener('submit', (event) => {
+    dataForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const signatureDataUrl = signatureCanvas.toDataURL();
@@ -190,18 +189,66 @@ document.addEventListener('DOMContentLoaded', () => {
             company: document.getElementById('company').value,
             date: document.getElementById('date').value
         };
-
-        const formData = {
-            ...formValues,
-            photos: capturedPhotos,
-            location: userLocation,
-            address: userAddress,
-            signature: signatureDataUrl
-        };
-
-        console.log("Datos listos para enviar:", formData);
-        alert("Proceso de envío simulado. Revisa la consola para ver los datos.");
         
+        const submitButton = document.getElementById('submitButton');
+        submitButton.textContent = 'Generando PDF...';
+        submitButton.disabled = true;
+
+        const { jsPDF } = window.jspdf;
+        const formElement = document.getElementById('dataForm');
+
+        try {
+            const canvas = await html2canvas(formElement, {
+                scale: 1,
+                logging: true,
+                useCORS: true,
+                allowTaint: true
+            });
+            
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            
+            const pdfBlob = pdf.output('blob');
+
+            const formData = new FormData();
+            for (const key in formValues) {
+                formData.append(key, formValues[key]);
+            }
+            formData.append('photos', JSON.stringify(capturedPhotos));
+            formData.append('location', JSON.stringify(userLocation));
+            formData.append('address', userAddress);
+            formData.append('signature', signatureDataUrl);
+            formData.append('pdfFile', pdfBlob, 'reporte.pdf');
+
+            console.log("Datos y PDF listos para enviar al servidor.");
+            
+            // Aquí se realiza la llamada al servidor.
+            // Asegúrate de que el servidor esté escuchando en esta dirección
+            await fetch('http://localhost:3000/api/send-email', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    alert("¡El correo con el PDF ha sido enviado con éxito!");
+                } else {
+                    alert("Hubo un error al enviar el correo. Por favor, inténtalo de nuevo.");
+                }
+            }).catch(error => {
+                console.error('Error en la conexión con el servidor:', error);
+                alert("Ocurrió un error en la conexión. Asegúrate de que el servidor esté encendido.");
+            });
+
+        } catch (error) {
+            console.error('Error al generar el PDF:', error);
+            alert("No se pudo generar el PDF. Revisa la consola para más detalles.");
+        } finally {
+            submitButton.textContent = 'Enviar Datos';
+            submitButton.disabled = false;
+        }
     });
 
     startCamera();
