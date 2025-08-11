@@ -1,0 +1,245 @@
+:root {
+    --primary-color: #FF8C00;
+    --secondary-color: #0056b3;
+    --background-color: #f4f4f4;
+    --text-color: #333;
+    --text-color-light: #666;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    max-width: 90%;
+    width: 100%;
+}
+
+h1, h2 {
+    text-align: center;
+    color: var(--text-color);
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background-color: var(--background-color);
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 15px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: var(--text-color-light);
+    font-size: 14px;
+}
+
+input[type="text"], input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus, input[type="date"]:focus {
+    border-color: var(--secondary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
+}
+
+.signature-pad #signatureCanvas {
+    width: 100%;
+    height: 150px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    cursor: crosshair;
+}
+
+#clearSignatureBtn {
+    background-color: #dc3545;
+    margin-top: 10px;
+}
+
+#clearSignatureBtn:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+
+#cameraFeed {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 10px auto;
+}
+
+.photo-list-section {
+    text-align: center;
+}
+
+#photoPreview {
+    width: 100%;
+    max-width: 400px;
+    min-height: 200px;
+    height: auto;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    margin: 10px auto;
+    display: block;
+    object-fit: cover;
+}
+
+#photoList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Estilos para el contenedor de cada miniatura con botón de borrar */
+.photo-thumbnail-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 4px;
+}
+
+.photo-thumbnail-container img {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.photo-thumbnail-container .delete-btn {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.photo-thumbnail-container .delete-btn:hover {
+    background-color: #c82333;
+}
+
+#location-display {
+    font-weight: 600;
+    color: var(--secondary-color);
+    word-wrap: break-word;
+    text-align: center;
+    font-size: 14px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--secondary-color);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+button:hover {
+    background-color: #004494;
+    transform: translateY(-2px);
+}
+
+/* Media query para pantallas extra pequeñas (ancho < 480px) */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 20px;
+    }
+    .container {
+        padding: 15px;
+    }
+}
+
+/* Media query para tabletas y dispositivos más grandes (ancho > 768px) */
+@media (min-width: 768px) {
+    body {
+        padding: 20px;
+    }
+    
+    .container {
+        padding: 40px;
+        max-width: 700px;
+    }
+
+    h1 {
+        font-size: 32px;
+    }
+
+    h2 {
+        font-size: 24px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    label {
+        font-size: 16px;
+    }
+
+    input[type="text"], input[type="date"] {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    #location-display {
+        font-size: 16px;
+    }
+
+    button {
+        padding: 14px;
+        font-size: 18px;
+    }
+}
