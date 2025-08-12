@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const submitButton = document.getElementById('submitButton');
-        submitButton.textContent = 'Generando correo...';
+        submitButton.textContent = 'Enviando...';
         submitButton.disabled = true;
 
         try {
@@ -202,42 +202,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 date: document.getElementById('date').value
             };
             
-            // Construir el cuerpo del correo en texto
-            let emailBody = "Informe de Identificación de Cable\n\n";
-            emailBody += "--- Datos del Trabajo ---\n";
-            emailBody += `Referencia del trabajo: ${formValues.workReference}\n`;
-            emailBody += `Descripción del cable: ${formValues.cableDescription}\n`;
-            emailBody += `Descripción cadena eléctrica: ${formValues.chainDescription}\n`;
-            emailBody += `Descripción marcado realizado: ${formValues.markedDescription}\n\n`;
-            emailBody += "--- Datos del Trabajador ---\n";
-            emailBody += `Nombre y Apellidos: ${formValues.fullName}\n`;
-            emailBody += `Empresa: ${formValues.company}\n`;
-            emailBody += `Equipo utilizado: ${formValues.equipment}\n`;
-            emailBody += `Fecha: ${formValues.date}\n\n`;
-            emailBody += "--- Ubicación ---\n";
-            emailBody += `Coordenadas: Lat: ${userLocation.latitude}, Lon: ${userLocation.longitude}\n`;
-            emailBody += `Dirección: ${userAddress}\n\n`;
-            emailBody += "--- Firma ---\n";
-            emailBody += `(Firma adjunta como Data URL a continuación)\n${signatureDataUrl}\n\n`;
-            emailBody += "--- Fotos ---\n";
-            emailBody += "(Fotos adjuntas como Data URLs a continuación)\n";
-            capturedPhotos.forEach((photo, index) => {
-                emailBody += `Foto ${index + 1}:\n${photo}\n\n`;
-            });
+            const templateParams = {
+                to_email: formValues.email,
+                workReference: formValues.workReference,
+                cableDescription: formValues.cableDescription,
+                chainDescription: formValues.chainDescription,
+                markedDescription: formValues.markedDescription,
+                fullName: formValues.fullName,
+                company: formValues.company,
+                equipment: formValues.equipment,
+                date: formValues.date,
+                location: `Latitud: ${userLocation.latitude}, Longitud: ${userLocation.longitude}`,
+                address: userAddress,
+                signature_image: signatureDataUrl,
+                captured_photos: capturedPhotos.map(photo => `<img src="${photo}" style="max-width:100%; height:auto; margin:5px;">`).join('')
+            };
 
-            // Construir el enlace mailto
-            const mailtoLink = `mailto:${formValues.email}` +
-                               `?subject=Informe de Identificación de Cable - Ref: ${formValues.workReference}` +
-                               `&body=${encodeURIComponent(emailBody)}`;
+            await emailjs.send('service_z6hjbxo', 'template_5xca81q', templateParams);
 
-            // Abrir el cliente de correo
-            window.location.href = mailtoLink;
-            
-            alert("Tu cliente de correo se ha abierto con el informe preparado. Por favor, haz clic en Enviar.");
-
+            alert("¡El correo con el informe ha sido enviado con éxito!");
+            console.log("Correo enviado. Datos:", templateParams);
+        
         } catch (error) {
-            console.error('Error al preparar el correo:', error);
-            alert("No se pudo preparar el correo. Revisa la consola para más detalles.");
+            console.error('Error al enviar el correo:', error);
+            alert("Hubo un error al enviar el correo. Por favor, revisa la consola.");
         } finally {
             submitButton.textContent = 'Enviar Datos';
             submitButton.disabled = false;
