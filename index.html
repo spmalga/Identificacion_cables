@@ -67,4 +67,38 @@
             </div>
 
             <div class="card photo-list-section">
-                <h2>Fotos Capturadas
+                <h2>Fotos Capturadas</h2>
+                <img id="photoPreview" src="#" alt="Última foto capturada">
+                <div id="photoList"></div>
+            </div>
+
+            <div class="card location-section">
+                <h2>Ubicación Exacta</h2>
+                <div id="location-display">
+                    Cargando ubicación...
+                    <span id="address-display" style="display: block; margin-top: 5px;"></span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Envío</h2>
+                <div class="form-group">
+                    <label for="email">Dirección de envío:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+            </div>
+
+            <button type="submit" id="submitButton" class="submit-button">Enviar Datos</button>
+        </form>
+    </div>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() { 
+            emailjs.init("oFuzysUXECn86IENS"); 
+        })();
+    </script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
