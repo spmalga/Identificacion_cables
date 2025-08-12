@@ -62,6 +62,31 @@ document.addEventListener('DOMContentLoaded', () => {
     clearSignatureBtn.addEventListener('click', () => {
         signatureContext.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
     });
+    
+    // Función para redimensionar una imagen antes de convertirla a base64
+    function resizeImage(img, maxWidth, maxHeight) {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+            if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+            }
+        } else {
+            if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+            }
+        }
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        return canvas.toDataURL('image/jpeg', 0.8); // 0.8 es la calidad, puedes ajustarla
+    }
 
     async function startCamera() {
         try {
@@ -84,38 +109,46 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = video.videoWidth;
+        tempCanvas.height = video.videoHeight;
+        const tempContext = tempCanvas.getContext('2d');
+        tempContext.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
         
-        const newPhotoDataUrl = canvas.toDataURL('image/png');
+        const photoDataUrl = tempCanvas.toDataURL('image/png');
         
-        capturedPhotos.push(newPhotoDataUrl);
-        
-        const thumbnailContainer = document.createElement('div');
-        thumbnailContainer.className = 'photo-thumbnail-container';
+        // Redimensionar la imagen antes de guardarla
+        const img = new Image();
+        img.onload = () => {
+            const newPhotoDataUrl = resizeImage(img, 600, 600); // Redimensiona a 600x600 como máximo
+            
+            capturedPhotos.push(newPhotoDataUrl);
+            
+            const thumbnailContainer = document.createElement('div');
+            thumbnailContainer.className = 'photo-thumbnail-container';
 
-        const photoThumbnail = document.createElement('img');
-        photoThumbnail.src = newPhotoDataUrl;
+            const photoThumbnail = document.createElement('img');
+            photoThumbnail.src = newPhotoDataUrl;
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = '×';
-        deleteBtn.addEventListener('click', () => {
-            const index = capturedPhotos.indexOf(newPhotoDataUrl);
-            if (index > -1) {
-                capturedPhotos.splice(index, 1);
-            }
-            thumbnailContainer.remove();
-        });
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.textContent = '×';
+            deleteBtn.addEventListener('click', () => {
+                const index = capturedPhotos.indexOf(newPhotoDataUrl);
+                if (index > -1) {
+                    capturedPhotos.splice(index, 1);
+                }
+                thumbnailContainer.remove();
+            });
 
-        thumbnailContainer.appendChild(photoThumbnail);
-        thumbnailContainer.appendChild(deleteBtn);
-        photoList.appendChild(thumbnailContainer);
+            thumbnailContainer.appendChild(photoThumbnail);
+            thumbnailContainer.appendChild(deleteBtn);
+            photoList.appendChild(thumbnailContainer);
 
-        photoPreview.src = newPhotoDataUrl;
-        photoPreview.style.border = 'none';
+            photoPreview.src = newPhotoDataUrl;
+            photoPreview.style.border = 'none';
+        };
+        img.src = photoDataUrl;
     });
     
     async function getAddressFromCoords(lat, lon) {
@@ -169,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dataForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        const signatureDataUrl = signatureCanvas.toDataURL();
+        const signatureDataUrl = signatureCanvas.toDataURL('image/jpeg', 0.8); // Se reduce la calidad de la firma
         if (signatureDataUrl.length < 500) {
             alert("Por favor, firma en el recuadro antes de enviar.");
             return;
@@ -218,7 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 captured_photos: capturedPhotos.map(photo => `<img src="${photo}" style="max-width:100%; height:auto; margin:5px;">`).join('')
             };
 
-            // Envía los datos con EmailJS.
             await emailjs.send('service_z6hjbxo', 'template_5xca81q', templateParams);
 
             alert("¡El correo con el informe ha sido enviado con éxito!");
