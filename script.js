@@ -19,6 +19,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isDrawing = false;
 
+    function resizeImage(img, maxWidth, maxHeight) {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+            if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+            }
+        } else {
+            if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+            }
+        }
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        return canvas.toDataURL('image/jpeg', 0.8);
+    }
+
     function setupSignatureCanvas() {
         signatureContext.lineWidth = 3;
         signatureContext.lineCap = 'round';
@@ -62,31 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
     clearSignatureBtn.addEventListener('click', () => {
         signatureContext.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
     });
-    
-    // Función para redimensionar una imagen antes de convertirla a base64
-    function resizeImage(img, maxWidth, maxHeight) {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-            if (width > maxWidth) {
-                height *= maxWidth / width;
-                width = maxWidth;
-            }
-        } else {
-            if (height > maxHeight) {
-                width *= maxHeight / height;
-                height = maxHeight;
-            }
-        }
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        return canvas.toDataURL('image/jpeg', 0.8); // 0.8 es la calidad, puedes ajustarla
-    }
 
     async function startCamera() {
         try {
@@ -108,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("La cámara no está activa.");
             return;
         }
-
+    
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = video.videoWidth;
         tempCanvas.height = video.videoHeight;
@@ -117,10 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const photoDataUrl = tempCanvas.toDataURL('image/png');
         
-        // Redimensionar la imagen antes de guardarla
         const img = new Image();
         img.onload = () => {
-            const newPhotoDataUrl = resizeImage(img, 600, 600); // Redimensiona a 600x600 como máximo
+            const newPhotoDataUrl = resizeImage(img, 600, 600);
             
             capturedPhotos.push(newPhotoDataUrl);
             
@@ -202,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dataForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        const signatureDataUrl = signatureCanvas.toDataURL('image/jpeg', 0.8); // Se reduce la calidad de la firma
+        const signatureDataUrl = signatureCanvas.toDataURL();
         if (signatureDataUrl.length < 500) {
             alert("Por favor, firma en el recuadro antes de enviar.");
             return;
@@ -219,52 +217,81 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const submitButton = document.getElementById('submitButton');
-        submitButton.textContent = 'Enviando...';
+        submitButton.textContent = 'Generando PDF...';
         submitButton.disabled = true;
 
+        const { jsPDF } = window.jspdf;
+        const formElement = document.getElementById('dataForm');
+
         try {
-            const formValues = {
-                workReference: document.getElementById('workReference').value,
-                cableDescription: document.getElementById('cableDescription').value,
-                chainDescription: document.getElementById('chainDescription').value,
-                markedDescription: document.getElementById('markedDescription').value,
-                fullName: document.getElementById('fullName').value,
-                company: document.getElementById('company').value,
-                equipment: document.getElementById('equipment').value,
-                email: document.getElementById('email').value,
-                date: document.getElementById('date').value
-            };
+            const canvas = await html2canvas(formElement, {
+                scale: 1,
+                logging: true,
+                useCORS: true,
+                allowTaint: true
+            });
             
-            const templateParams = {
-                to_email: formValues.email,
-                workReference: formValues.workReference,
-                cableDescription: formValues.cableDescription,
-                chainDescription: formValues.chainDescription,
-                markedDescription: formValues.markedDescription,
-                fullName: formValues.fullName,
-                company: formValues.company,
-                equipment: formValues.equipment,
-                date: formValues.date,
-                location: `Latitud: ${userLocation.latitude}, Longitud: ${userLocation.longitude}`,
-                address: userAddress,
-                signature_image: signatureDataUrl,
-                captured_photos: capturedPhotos.map(photo => `<img src="${photo}" style="max-width:100%; height:auto; margin:5px;">`).join('')
-            };
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            
+            const pdfBlob = pdf.output('blob');
 
-            await emailjs.send('service_z6hjbxo', 'template_5xca81q', templateParams);
+            const formData = new FormData(formElement);
+            formData.append('pdfFile', pdfBlob, 'reporte.pdf');
+            
+            const signatureBlob = dataURLtoBlob(signatureDataUrl);
+            formData.append('signature', signatureBlob, 'firma.png');
+            
+            capturedPhotos.forEach((photo, index) => {
+                const photoBlob = dataURLtoBlob(photo);
+                formData.append(`photo_${index + 1}`, photoBlob, `foto_${index + 1}.png`);
+            });
+            
+            formData.append('location', JSON.stringify(userLocation));
+            formData.append('address', userAddress);
 
-            alert("¡El correo con el informe ha sido enviado con éxito!");
-            console.log("Correo enviado. Datos:", templateParams);
-        
+            await fetch(formElement.action, {
+                method: formElement.method,
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('¡Formulario enviado con éxito!');
+                    dataForm.reset();
+                } else {
+                    alert('Hubo un error al enviar el formulario. Por favor, inténtalo de nuevo.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error en la conexión. Revisa la consola.');
+            });
+
         } catch (error) {
-            console.error('Error al enviar el correo:', error);
-            alert("Hubo un error al enviar el correo. Por favor, revisa la consola.");
+            console.error('Error al generar el PDF:', error);
+            alert("No se pudo generar el PDF. Revisa la consola para más detalles.");
         } finally {
             submitButton.textContent = 'Enviar Datos';
             submitButton.disabled = false;
         }
     });
 
+    function dataURLtoBlob(dataurl) {
+        const arr = dataurl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while(n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], {type: mime});
+    }
+    
     startCamera();
     getLocation();
     setupSignatureCanvas();
