@@ -27,7 +27,7 @@ app.post('/api/send-email', upload.single('pdfFile'), async (req, res) => {
             service: 'gmail',
             auth: {
                 user: 'spmalaga@gmail.com', // Reemplaza con tu dirección de correo
-                pass: 'ingenierias3' // Reemplaza con tu contraseña de aplicación
+                pass: 'ingenierias1' // Reemplaza con tu contraseña de aplicación
             }
         });
 
