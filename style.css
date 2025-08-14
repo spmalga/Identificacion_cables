@@ -89,4 +89,154 @@ input[type="text"]:focus, input[type="date"]:focus, input[type="email"]:focus {
 }
 
 #clearSignatureBtn:hover {
-    background-color:
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+
+#cameraFeed {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 10px auto;
+}
+
+.photo-list-section {
+    text-align: center;
+}
+
+#photoPreview {
+    width: 100%;
+    max-width: 400px;
+    min-height: 200px;
+    height: auto;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    margin: 10px auto;
+    display: block;
+    object-fit: cover;
+}
+
+#photoList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.photo-thumbnail-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 4px;
+}
+
+.photo-thumbnail-container img {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ddd;
+    border-radius: 40px;
+    object-fit: cover;
+}
+
+.photo-thumbnail-container .delete-btn {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.photo-thumbnail-container .delete-btn:hover {
+    background-color: #c82333;
+}
+
+#location-display {
+    font-weight: 600;
+    color: var(--secondary-color);
+    word-wrap: break-word;
+    text-align: center;
+    font-size: 14px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--secondary-color);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+button:hover {
+    background-color: #004494;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 20px;
+    }
+    .container {
+        padding: 15px;
+    }
+}
+
+@media (min-width: 768px) {
+    body {
+        padding: 20px;
+    }
+    
+    .container {
+        padding: 40px;
+        max-width: 700px;
+    }
+
+    h1 {
+        font-size: 32px;
+    }
+
+    h2 {
+        font-size: 24px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    label {
+        font-size: 16px;
+    }
+
+    input[type="text"], input[type="date"], input[type="email"] {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    #location-display {
+        font-size: 16px;
+    }
+
+    button {
+        padding: 14px;
+        font-size: 18px;
+    }
+}

@@ -240,29 +240,29 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const pdfBlob = pdf.output('blob');
 
-            // Crear un objeto FormData para enviar los datos como archivos
             const formData = new FormData(formElement);
-            
-            // Añadir el PDF como un archivo adjunto
             formData.append('pdfFile', pdfBlob, 'reporte.pdf');
             
-            // Añadir las fotos y la firma como archivos
+            const signatureBlob = dataURLtoBlob(signatureDataUrl);
+            formData.append('signature', signatureBlob, 'firma.png');
+            
             capturedPhotos.forEach((photo, index) => {
                 const photoBlob = dataURLtoBlob(photo);
                 formData.append(`photo_${index + 1}`, photoBlob, `foto_${index + 1}.png`);
             });
             
-            const signatureBlob = dataURLtoBlob(signatureDataUrl);
-            formData.append('signature', signatureBlob, 'firma.png');
-            
-            // Reemplazar los campos de texto por los datos de ubicación
-            formData.set('location', `Lat: ${userLocation.latitude}, Lon: ${userLocation.longitude}`);
-            formData.set('address', userAddress);
+            formData.append('location', `Lat: ${userLocation.latitude}, Lon: ${userLocation.longitude}`);
+            formData.append('address', userAddress);
+            formData.append('workReference', document.getElementById('workReference').value);
+            formData.append('cableDescription', document.getElementById('cableDescription').value);
+            formData.append('chainDescription', document.getElementById('chainDescription').value);
+            formData.append('markedDescription', document.getElementById('markedDescription').value);
+            formData.append('fullName', document.getElementById('fullName').value);
+            formData.append('company', document.getElementById('company').value);
+            formData.append('equipment', document.getElementById('equipment').value);
+            formData.append('date', document.getElementById('date').value);
 
-            // Esto enviará el formulario a Formspree
             formElement.submit();
-
-            alert("El PDF se ha generado y el formulario se está enviando a Formspree.");
 
         } catch (error) {
             console.error('Error al generar el PDF:', error);
