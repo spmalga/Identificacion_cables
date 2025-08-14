@@ -33,7 +33,7 @@ app.post('/api/send-email', upload.single('pdfFile'), async (req, res) => {
 
         // Opciones del correo electrónico
         const mailOptions = {
-            from: 'TU_CORREO@gmail.com',
+            from: 'spmalaga@gmail.com',
             to: email, // El correo del destinatario, tomado del formulario
             subject: `Informe de Identificación de Cable - Ref: ${workReference}`,
             html: `
