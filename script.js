@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('cameraFeed');
-    const canvas = document.getElementById('photoCanvas');
     const photoPreview = document.getElementById('photoPreview');
     const takePhotoButton = document.getElementById('takePhotoButton');
     const dataForm = document.getElementById('dataForm');
@@ -197,6 +196,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function dataURLtoBlob(dataurl) {
+        const arr = dataurl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while(n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], {type: mime});
+    }
+
     dataForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -240,18 +251,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const pdfBlob = pdf.output('blob');
 
-            const formData = new FormData(formElement);
+            const formData = new FormData();
             formData.append('pdfFile', pdfBlob, 'reporte.pdf');
             
-            const signatureBlob = dataURLtoBlob(signatureDataUrl);
-            formData.append('signature', signatureBlob, 'firma.png');
-            
-            capturedPhotos.forEach((photo, index) => {
-                const photoBlob = dataURLtoBlob(photo);
-                formData.append(`photo_${index + 1}`, photoBlob, `foto_${index + 1}.png`);
-            });
-            
-            formData.append('location', `Lat: ${userLocation.latitude}, Lon: ${userLocation.longitude}`);
+            formData.append('signature', signatureDataUrl);
+            formData.append('photos', JSON.stringify(capturedPhotos));
+            formData.append('location', JSON.stringify(userLocation));
             formData.append('address', userAddress);
             formData.append('workReference', document.getElementById('workReference').value);
             formData.append('cableDescription', document.getElementById('cableDescription').value);
@@ -262,28 +267,27 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('equipment', document.getElementById('equipment').value);
             formData.append('date', document.getElementById('date').value);
 
-            formElement.submit();
+            // Fetch request para enviar los datos al servidor
+            const response = await fetch('http://localhost:3000/api/send-email', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                alert("¡El correo con el PDF ha sido enviado con éxito!");
+            } else {
+                const errorData = await response.json();
+                alert(`Error al enviar el correo: ${errorData.error}`);
+            }
 
         } catch (error) {
-            console.error('Error al generar el PDF:', error);
-            alert("No se pudo generar el PDF. Revisa la consola para más detalles.");
+            console.error('Error al generar el PDF o al enviar el correo:', error);
+            alert("Ocurrió un error. Asegúrate de que el servidor esté encendido y funcionando.");
         } finally {
             submitButton.textContent = 'Enviar Datos';
             submitButton.disabled = false;
         }
     });
-
-    function dataURLtoBlob(dataurl) {
-        const arr = dataurl.split(',');
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while(n--) {
-            u8arr[n] = bstr.charCodeAt(n);
-        }
-        return new Blob([u8arr], {type: mime});
-    }
     
     startCamera();
     getLocation();
