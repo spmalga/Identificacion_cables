@@ -26,8 +26,8 @@ app.post('/api/send-email', upload.single('pdfFile'), async (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'agutierrez@elecnor.es', // Reemplaza con tu dirección de correo
-                pass: 'ingenierias3' // Reemplaza con tu contraseña de aplicación
+                user: '', // Reemplaza con tu dirección de correo
+                pass: '' // Reemplaza con tu contraseña de aplicación
             }
         });
 
